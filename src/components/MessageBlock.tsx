@@ -1,15 +1,18 @@
-import { User, Download, Loader2, CheckCircle2 } from 'lucide-react';
-import ReasoningBlock from './ReasoningBlock';
-import type { ChatMessage } from '@/types';
-import { generatePPTX, downloadPPTX } from '@/lib/pptGenerator';
-import { useState, useEffect, useRef } from 'react';
+import { User, Download, Loader2, CheckCircle2 } from "lucide-react";
+import ReasoningBlock from "./ReasoningBlock";
+import type { ChatMessage } from "@/types";
+import { generatePPTX, downloadPPTX } from "@/lib/pptGenerator";
+import { useState, useEffect, useRef } from "react";
 
 interface MessageBlockProps {
   message: ChatMessage;
   showPresentation?: boolean;
 }
 
-export default function MessageBlock({ message, showPresentation = true }: MessageBlockProps) {
+export default function MessageBlock({
+  message,
+  showPresentation = true,
+}: MessageBlockProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const reasoningEndRef = useRef<HTMLDivElement>(null);
 
@@ -19,9 +22,9 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
     setIsDownloading(true);
     try {
       const blob = await generatePPTX(message.presentation);
-      downloadPPTX(blob, message.presentation.title || 'presentation');
+      downloadPPTX(blob, message.presentation.title || "presentation");
     } catch (error) {
-      console.error('Error downloading presentation:', error);
+      console.error("Error downloading presentation:", error);
     } finally {
       setIsDownloading(false);
     }
@@ -30,11 +33,11 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
   // Auto-scroll to latest reasoning step
   useEffect(() => {
     if (message.reasoning && message.reasoning.length > 0) {
-      reasoningEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      reasoningEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [message.reasoning]);
 
-  if (message.role === 'user') {
+  if (message.role === "user") {
     return (
       <div className="flex items-start gap-3 justify-end mb-4">
         <div className="bg-[#2563eb] text-white rounded-lg px-4 py-3 max-w-[80%] shadow-sm">
@@ -58,7 +61,7 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
             </div>
             <div
               className={`flex items-center gap-2 text-sm font-semibold ${
-                message.presentation ? 'text-emerald-600' : 'text-[#2563eb]'
+                message.presentation ? "text-emerald-600" : "text-[#2563eb]"
               }`}
             >
               {message.presentation ? (
@@ -67,7 +70,9 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
                 <Loader2 className="w-4 h-4 animate-spin" />
               )}
               <span>
-                {message.presentation ? 'Slides ready to review' : 'Drafting presentation…'}
+                {message.presentation
+                  ? "Slides ready to review"
+                  : "Drafting presentation…"}
               </span>
             </div>
           </div>
@@ -110,7 +115,7 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
                 className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white rounded-lg hover:bg-[#1d4ed8] transition-all disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
-                {isDownloading ? 'Generating...' : 'Download PPTX'}
+                {isDownloading ? "Generating..." : "Download PPTX"}
               </button>
             </div>
 

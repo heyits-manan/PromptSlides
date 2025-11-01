@@ -38,7 +38,7 @@ export default function PresentationPreview({
           <button
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-sm border-2 border-gray-700 hover:cursor-pointer hover:bg-amber-50 bg-white text-black rounded-lg disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             {isDownloading ? "Generating..." : "Download PPTX"}
@@ -50,7 +50,7 @@ export default function PresentationPreview({
       <div className="flex-1 overflow-hidden">
         {!presentation ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-6">
-            <div className="w-24 h-24 mb-4 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+            <div className="w-24 h-24 mb-4 rounded-lg flex items-center justify-center">
               <svg
                 className="w-12 h-12 text-purple-600"
                 fill="none"

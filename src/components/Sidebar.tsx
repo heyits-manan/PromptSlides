@@ -13,11 +13,6 @@ export default function Sidebar() {
 
   return (
     <div className="w-16 bg-gray-50 border-r border-gray-200 flex flex-col items-center py-4">
-      {/* Logo */}
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 text-white flex items-center justify-center mb-6">
-        <Presentation className="w-6 h-6" />
-      </div>
-
       {/* Menu Items */}
       <div className="flex-1 flex flex-col items-center space-y-4 w-full">
         {menuItems.map((item) => {
