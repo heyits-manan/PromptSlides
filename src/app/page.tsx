@@ -90,21 +90,6 @@ export default function Home() {
                       : msg
                   )
                 );
-              } else if (parsed.type === "content_chunk") {
-                // Stream AI content token-by-token
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? {
-                          ...msg,
-                          content:
-                            msg.content === "Generating presentation..."
-                              ? parsed.chunk
-                              : msg.content + parsed.chunk,
-                        }
-                      : msg
-                  )
-                );
               } else if (parsed.type === "progress") {
                 // Show PPT generation progress
                 setMessages((prev) =>

@@ -108,24 +108,20 @@ Guidelines:
 
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Stream content token-by-token
+        // Send a progress message while AI generates the content
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              type: "progress",
+              message: "Generating presentation content...",
+            })}\n\n`
+          )
+        );
+
+        // Accumulate all chunks (don't stream raw JSON to frontend)
         for await (const chunk of result.stream) {
           const chunkText = chunk.text();
           fullText += chunkText;
-
-          // Stream the content chunk to frontend
-          if (!isStreamingContent) {
-            isStreamingContent = true;
-          }
-
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                type: "content_chunk",
-                chunk: chunkText,
-              })}\n\n`
-            )
-          );
         }
 
         // Extract JSON from the response

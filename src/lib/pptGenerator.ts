@@ -19,6 +19,9 @@ export async function generatePPTX(presentation: Presentation): Promise<Blob> {
   };
 
   // Generate slides
+  const stripEmphasis = (text: string) =>
+    text.replace(/\*\*(.+?)\*\*/g, '$1');
+
   presentation.slides.forEach((slideData, index) => {
     const slide = pptx.addSlide();
 
@@ -50,7 +53,7 @@ export async function generatePPTX(presentation: Presentation): Promise<Blob> {
 
       // Subtitle (if available in content)
       if (slideData.content && slideData.content.length > 0) {
-        slide.addText(slideData.content[0], {
+        slide.addText(stripEmphasis(slideData.content[0]), {
           x: 0.5,
           y: 4.2,
           w: 9,
@@ -88,7 +91,7 @@ export async function generatePPTX(presentation: Presentation): Promise<Blob> {
       // Add content bullets
       if (slideData.content && slideData.content.length > 0) {
         const bulletPoints = slideData.content.map((point) => ({
-          text: point,
+          text: stripEmphasis(point),
           options: {
             bullet: true,
             fontSize: 18,

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Slide } from "@/types";
 
 interface SlideViewerProps {
@@ -10,132 +9,206 @@ interface SlideViewerProps {
 
 export default function SlideViewer({ slides }: SlideViewerProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  const goToPrevious = () => {
-    setCurrentSlide((prev) => Math.max(0, prev - 1));
+  useEffect(() => {
+    slideRefs.current = slideRefs.current.slice(0, slides.length);
+  }, [slides]);
+
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+
+    const nodes = slideRefs.current.filter(
+      (node): node is HTMLDivElement => node !== null
+    );
+
+    if (nodes.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visible) {
+          const index = Number(visible.target.getAttribute("data-index"));
+          if (!Number.isNaN(index)) {
+            setCurrentSlide((prev) => (prev === index ? prev : index));
+          }
+        }
+      },
+      {
+        root: container,
+        threshold: [0.4, 0.6, 0.75],
+      }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+
+    return () => observer.disconnect();
+  }, [slides]);
+
+  const renderRichText = (text: string): ReactNode => {
+    const regex = /\*\*(.+?)\*\*/g;
+    const segments: ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let key = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push(text.slice(lastIndex, match.index));
+      }
+
+      segments.push(
+        <span key={`bold-${key++}`} className="font-semibold text-gray-900">
+          {match[1]}
+        </span>
+      );
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      segments.push(text.slice(lastIndex));
+    }
+
+    return segments.length > 0 ? segments : text;
   };
 
-  const goToNext = () => {
-    setCurrentSlide((prev) => Math.min(slides.length - 1, prev + 1));
+  const handleThumbnailClick = (index: number) => {
+    const node = slideRefs.current[index];
+    if (node) {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    setCurrentSlide(index);
   };
-
-  const slide = slides[currentSlide];
-  const isFirstSlide = currentSlide === 0;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Slide Display Area */}
-      <div className="flex-1 flex items-center justify-center p-4 bg-gray-100 overflow-hidden">
-        <div className="relative max-w-full">
-          {/* The Slide */}
-          <div
-            className="bg-white shadow-2xl mx-auto"
-            style={{
-              width: "min(700px, 100%)",
-              height: "min(394px, calc(100vw * 0.45 * 0.5625))", // 16:9 aspect ratio, scaled to fit
-            }}
-          >
-            {isFirstSlide ? (
-              // Title Slide
-              <div className="h-full flex flex-col items-center justify-center p-8 bg-linear-to-br from-purple-600 to-blue-600 text-white">
-                <h1 className="text-3xl md:text-4xl font-bold text-center mb-4 leading-tight">
-                  {slide.title}
-                </h1>
-                {slide.content && slide.content.length > 0 && (
-                  <p className="text-base md:text-lg text-center opacity-90">
-                    {slide.content[0]}
-                  </p>
-                )}
-              </div>
-            ) : (
-              // Content Slide
-              <div className="h-full flex flex-col p-6 md:p-8 relative">
-                {/* Purple header bar */}
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-600 to-blue-600" />
+      <div className="flex-1 flex flex-col p-10 bg-[#f8fafc] overflow-hidden">
+        <div ref={listRef} className="flex-1 overflow-y-auto pr-4">
+          <div className="space-y-10 pb-12">
+            {slides.map((slide, idx) => {
+              const isTitleSlide = idx === 0;
+              const isActive = idx === currentSlide;
 
-                {/* Slide Title */}
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6 pt-3">
-                  {slide.title}
-                </h2>
-
-                {/* Slide Content */}
-                <div className="flex-1 flex flex-col justify-center overflow-y-auto">
-                  <ul className="space-y-2 md:space-y-3">
-                    {slide.content.map((point, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-start text-sm md:text-base text-gray-700 leading-relaxed"
-                      >
-                        <span className="text-purple-600 mr-2 md:mr-3 mt-0.5 text-lg md:text-xl flex-shrink-0">
-                          •
-                        </span>
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
+              return (
+                <div
+                  key={slide.id || idx}
+                  data-index={idx}
+                  ref={(el) => {
+                    slideRefs.current[idx] = el;
+                  }}
+                  className={`relative bg-white border border-gray-200 rounded-[18px] shadow-[0_24px_48px_rgba(15,23,42,0.08)] transition-all ${
+                    isActive ? "ring-1 ring-[#2563eb]/40" : ""
+                  }`}
+                  style={{
+                    width: "min(900px, 92vw)",
+                    minHeight: "560px",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                  }}
+                >
+                  {isTitleSlide ? (
+                    <div className="h-full flex flex-col px-16 py-16 bg-white">
+                      <div className="absolute inset-x-0 top-0 h-[3px] bg-[#2563eb]" />
+                      <div className="flex-1 flex flex-col justify-center max-w-3xl">
+                        <p className="text-xs tracking-[0.32em] uppercase text-gray-400 mb-6">
+                          Presentation Overview
+                        </p>
+                        <h1 className="text-[clamp(36px,4.8vw,54px)] font-semibold text-gray-900 leading-[1.15] mb-8">
+                          {slide.title}
+                        </h1>
+                        {slide.content?.[0] && (
+                          <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
+                            {renderRichText(slide.content[0])}
+                          </p>
+                        )}
+                      </div>
+                      <div className="pt-12 text-sm text-gray-400 font-medium">
+                        {String(idx + 1).padStart(2, "0")} /{" "}
+                        {String(slides.length).padStart(2, "0")}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col px-16 py-16 bg-white relative">
+                      <div className="absolute inset-x-0 top-0 h-[3px] bg-[#2563eb]" />
+                      <p className="text-xs tracking-[0.32em] uppercase text-gray-400">
+                        Key Insight
+                      </p>
+                      <h2 className="text-[clamp(30px,3.6vw,46px)] font-semibold text-gray-900 leading-tight mt-4 mb-8">
+                        {slide.title}
+                      </h2>
+                      <div className="flex-1">
+                        <ul className="flex flex-col gap-7 max-w-3xl">
+                          {slide.content.map((point, bulletIdx) => (
+                            <li
+                              key={bulletIdx}
+                              className="flex items-start gap-5 text-[20px] leading-[1.65] text-gray-800"
+                            >
+                              <span className="mt-2 block h-2.5 w-2.5 rounded-full bg-[#2563eb]" />
+                              <span className="flex-1">
+                                {renderRichText(point)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="pt-12 text-sm font-medium text-gray-400">
+                        {String(idx + 1).padStart(2, "0")} /{" "}
+                        {String(slides.length).padStart(2, "0")}
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {/* Slide Number */}
-                <div className="absolute bottom-2 right-3 text-xs text-gray-400">
-                  {currentSlide + 1}
-                </div>
-              </div>
-            )}
+              );
+            })}
           </div>
-
-          {/* Navigation Arrows */}
-          <button
-            onClick={goToPrevious}
-            disabled={currentSlide === 0}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all z-10"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-          </button>
-
-          <button
-            onClick={goToNext}
-            disabled={currentSlide === slides.length - 1}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all z-10"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-700" />
-          </button>
         </div>
       </div>
 
-      {/* Slide Counter and Thumbnails */}
-      <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <span className="text-sm font-medium text-gray-700">
+      <div className="border-t border-gray-200 bg-white px-8 py-6 flex-shrink-0">
+        <div className="flex items-center justify-center gap-2 mb-5">
+          <span className="text-sm font-semibold text-gray-700 tracking-wide">
             Slide {currentSlide + 1} of {slides.length}
           </span>
         </div>
 
-        {/* Slide Thumbnails */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        {/* <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {slides.map((s, idx) => (
             <button
               key={s.id || idx}
-              onClick={() => setCurrentSlide(idx)}
-              className={`shrink-0 w-28 h-16 rounded border-2 transition-all ${
+              onClick={() => handleThumbnailClick(idx)}
+              className={`shrink-0 w-36 h-20 rounded-xl border transition-all ${
                 idx === currentSlide
-                  ? "border-purple-600 shadow-md"
+                  ? "border-[#2563eb] shadow-[0_12px_24px_rgba(37,99,235,0.12)]"
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
               <div
-                className={`w-full h-full flex items-center justify-center text-xs p-2 ${
-                  idx === 0
-                    ? "bg-linear-to-br from-purple-600 to-blue-600 text-white"
-                    : "bg-white text-gray-700"
+                className={`w-full h-full flex flex-col items-start justify-center text-xs px-3 py-2 rounded-[10px] ${
+                  idx === currentSlide ? "bg-[#f1f5f9]" : "bg-white"
                 }`}
               >
-                <div className="truncate text-center font-semibold">
+                <span className="text-[10px] uppercase tracking-[0.24em] font-semibold text-gray-400 mb-1">
+                  {idx === 0 ? "Intro" : `Slide ${idx + 1}`}
+                </span>
+                <div
+                  className="text-[12px] font-semibold text-gray-800 leading-snug overflow-hidden"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
                   {s.title}
                 </div>
               </div>
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
     </div>
   );

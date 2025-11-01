@@ -1,4 +1,4 @@
-import { User, Download } from 'lucide-react';
+import { User, Download, Loader2, CheckCircle2 } from 'lucide-react';
 import ReasoningBlock from './ReasoningBlock';
 import type { ChatMessage } from '@/types';
 import { generatePPTX, downloadPPTX } from '@/lib/pptGenerator';
@@ -37,7 +37,7 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
   if (message.role === 'user') {
     return (
       <div className="flex items-start gap-3 justify-end mb-4">
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg px-4 py-3 max-w-[80%]">
+        <div className="bg-[#2563eb] text-white rounded-lg px-4 py-3 max-w-[80%] shadow-sm">
           <p className="text-sm">{message.content}</p>
         </div>
         <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
@@ -52,29 +52,38 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
       {/* Reasoning Steps */}
       {message.reasoning && message.reasoning.length > 0 && (
         <div className="mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AI</span>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-xs font-semibold text-slate-600">
+              AI
             </div>
-            <p className={`text-sm font-medium text-purple-600 ${!message.presentation ? 'animate-pulse' : ''}`}>
-              {message.presentation ? 'Completed' : 'Thinking...'}
-            </p>
+            <div
+              className={`flex items-center gap-2 text-sm font-semibold ${
+                message.presentation ? 'text-emerald-600' : 'text-[#2563eb]'
+              }`}
+            >
+              {message.presentation ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              )}
+              <span>
+                {message.presentation ? 'Slides ready to review' : 'Drafting presentation…'}
+              </span>
+            </div>
           </div>
           <div className="ml-11">
-            {message.reasoning.map((step, index) => (
-              <ReasoningBlock key={index} step={step} />
-            ))}
-
-            {/* Show streaming AI content */}
-            {!message.presentation && message.content !== "Generating presentation..." && (
-              <div className="bg-white border border-gray-200 rounded-lg p-4 mb-3 mt-3">
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line font-mono">
-                  {message.content}
-                  <span className="inline-block w-2 h-4 bg-purple-600 ml-1 animate-pulse" />
-                </p>
-              </div>
-            )}
-
+            {message.reasoning.map((step, index) => {
+              const isLast = index === message.reasoning.length - 1;
+              const isActive = !message.presentation && isLast;
+              return (
+                <ReasoningBlock
+                  key={index}
+                  step={step}
+                  isLast={isLast}
+                  isActive={isActive}
+                />
+              );
+            })}
             <div ref={reasoningEndRef} />
           </div>
         </div>
@@ -98,7 +107,7 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
               <button
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white rounded-lg hover:bg-[#1d4ed8] transition-all disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
                 {isDownloading ? 'Generating...' : 'Download PPTX'}
@@ -117,8 +126,8 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
                     className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-purple-600">
+                      <div className="w-8 h-8 rounded bg-[#e0e7ff] flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-semibold text-[#1e3a8a]">
                           {index + 1}
                         </span>
                       </div>
@@ -132,7 +141,7 @@ export default function MessageBlock({ message, showPresentation = true }: Messa
                               key={idx}
                               className="text-sm text-gray-600 flex items-start gap-2"
                             >
-                              <span className="text-purple-600 mt-1">•</span>
+                              <span className="text-[#2563eb] mt-1">•</span>
                               <span>{point}</span>
                             </li>
                           ))}
