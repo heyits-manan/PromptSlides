@@ -90,7 +90,6 @@ Guidelines:
         const result = await model.generateContentStream(fullPrompt);
 
         let fullText = "";
-        let isStreamingContent = false;
 
         // Send generating step before streaming starts
         controller.enqueue(
@@ -252,13 +251,17 @@ Guidelines:
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error generating presentation:", error);
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "Failed to generate presentation";
         controller.enqueue(
           encoder.encode(
             `data: ${JSON.stringify({
               type: "error",
-              error: error.message || "Failed to generate presentation",
+              error: message,
             })}\n\n`
           )
         );

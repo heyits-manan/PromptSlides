@@ -1,5 +1,5 @@
 import PptxGenJS from 'pptxgenjs';
-import type { Presentation, Slide } from '@/types';
+import type { Presentation } from '@/types';
 
 export async function generatePPTX(presentation: Presentation): Promise<Blob> {
   const pptx = new PptxGenJS();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Home, Sparkles, Presentation, ChevronRight } from "lucide-react";
+import { Home, Sparkles, ChevronRight } from "lucide-react";
 
 export default function Sidebar() {
   const [activeItem, setActiveItem] = useState("ai-slides");

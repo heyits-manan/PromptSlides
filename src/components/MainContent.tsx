@@ -1,15 +1,14 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Paperclip, Image as ImageIcon, Send, ChevronLeft, Loader2, X } from 'lucide-react';
+import { Paperclip, Image as ImageIcon, Send, Loader2, X } from 'lucide-react';
 
 interface MainContentProps {
   onGenerate: (input: string, files?: File[]) => void;
   isGenerating: boolean;
-  presentation: any;
 }
 
-export default function MainContent({ onGenerate, isGenerating, presentation }: MainContentProps) {
+export default function MainContent({ onGenerate, isGenerating }: MainContentProps) {
   const [input, setInput] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

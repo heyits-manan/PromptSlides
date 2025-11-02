@@ -58,3 +58,13 @@ export interface GenerateResponse {
   message: ChatMessage;
   presentation?: Presentation;
 }
+
+export interface EditSlideRequest {
+  presentation: Presentation;
+  slideIndex: number;
+  instruction: string;
+}
+
+export interface EditSlideResponse {
+  presentation: Presentation;
+}

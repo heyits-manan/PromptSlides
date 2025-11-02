@@ -5,9 +5,17 @@ import type { Slide } from "@/types";
 
 interface SlideViewerProps {
   slides: Slide[];
+  onSlideChange?: (index: number) => void;
+  onRequestEdit?: (slideIndex: number) => void;
+  isEditing?: boolean;
 }
 
-export default function SlideViewer({ slides }: SlideViewerProps) {
+export default function SlideViewer({
+  slides,
+  onSlideChange,
+  onRequestEdit,
+  isEditing,
+}: SlideViewerProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const listRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -15,6 +23,10 @@ export default function SlideViewer({ slides }: SlideViewerProps) {
   useEffect(() => {
     slideRefs.current = slideRefs.current.slice(0, slides.length);
   }, [slides]);
+
+  useEffect(() => {
+    onSlideChange?.(currentSlide);
+  }, [currentSlide, onSlideChange]);
 
   useEffect(() => {
     const container = listRef.current;
@@ -77,14 +89,6 @@ export default function SlideViewer({ slides }: SlideViewerProps) {
     return segments.length > 0 ? segments : text;
   };
 
-  const handleThumbnailClick = (index: number) => {
-    const node = slideRefs.current[index];
-    if (node) {
-      node.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-    setCurrentSlide(index);
-  };
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 flex flex-col p-10 bg-[#f8fafc] overflow-hidden">
@@ -111,6 +115,16 @@ export default function SlideViewer({ slides }: SlideViewerProps) {
                     marginRight: "auto",
                   }}
                 >
+                  {onRequestEdit && (
+                    <button
+                      type="button"
+                      onClick={() => onRequestEdit(idx)}
+                      disabled={isEditing}
+                      className="absolute top-6 right-6 px-3 py-1.5 text-xs font-semibold bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full shadow-sm text-gray-700 hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isEditing ? "Editing..." : "Edit with AI"}
+                    </button>
+                  )}
                   {isTitleSlide ? (
                     <div className="h-full flex flex-col px-16 py-16 bg-white">
                       <div className="absolute inset-x-0 top-0 h-[3px] bg-[#2563eb]" />
@@ -175,40 +189,6 @@ export default function SlideViewer({ slides }: SlideViewerProps) {
             Slide {currentSlide + 1} of {slides.length}
           </span>
         </div>
-
-        {/* <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {slides.map((s, idx) => (
-            <button
-              key={s.id || idx}
-              onClick={() => handleThumbnailClick(idx)}
-              className={`shrink-0 w-36 h-20 rounded-xl border transition-all ${
-                idx === currentSlide
-                  ? "border-[#2563eb] shadow-[0_12px_24px_rgba(37,99,235,0.12)]"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              <div
-                className={`w-full h-full flex flex-col items-start justify-center text-xs px-3 py-2 rounded-[10px] ${
-                  idx === currentSlide ? "bg-[#f1f5f9]" : "bg-white"
-                }`}
-              >
-                <span className="text-[10px] uppercase tracking-[0.24em] font-semibold text-gray-400 mb-1">
-                  {idx === 0 ? "Intro" : `Slide ${idx + 1}`}
-                </span>
-                <div
-                  className="text-[12px] font-semibold text-gray-800 leading-snug overflow-hidden"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {s.title}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div> */}
       </div>
     </div>
   );

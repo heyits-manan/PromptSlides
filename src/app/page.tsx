@@ -10,8 +10,10 @@ import type { ChatMessage } from "@/types";
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEditingSlide, setIsEditingSlide] = useState(false);
 
   const handleGenerate = async (input: string, files?: File[]) => {
+    void files;
     // Add user message
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -151,6 +153,105 @@ export default function Home() {
     }
   };
 
+  const handleEditSlide = async (slideIndex: number, instruction: string) => {
+    const presentationToEdit = [...messages]
+      .reverse()
+      .find((msg) => msg.presentation)?.presentation;
+
+    if (!presentationToEdit) {
+      throw new Error("There is no presentation to edit yet");
+    }
+
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: `Edit slide ${slideIndex + 1}: ${instruction}`,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+
+    const assistantMessageId = crypto.randomUUID();
+    const assistantMessage: ChatMessage = {
+      id: assistantMessageId,
+      role: "assistant",
+      content: "Applying your slide edits...",
+      reasoning: [
+        {
+          type: "generating",
+          title: "",
+          content: `Updating slide ${slideIndex + 1} based on your prompt...`,
+        },
+      ],
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, assistantMessage]);
+
+    setIsEditingSlide(true);
+
+    try {
+      const response = await fetch("/api/edit-slide", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          presentation: presentationToEdit,
+          slideIndex,
+          instruction,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data) {
+        const message = data?.error || "Failed to edit slide";
+        throw new Error(message);
+      }
+
+      const updatedPresentation = data.presentation;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? {
+                ...msg,
+                content: `Updated slide ${slideIndex + 1}`,
+                reasoning: [
+                  {
+                    type: "generating",
+                    title: "",
+                    content: "Applied your slide edits.",
+                  },
+                ],
+                presentation: updatedPresentation,
+              }
+            : msg
+        )
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to edit slide";
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? {
+                ...msg,
+                content: `Sorry, I could not apply that edit: ${message}`,
+                reasoning: [],
+              }
+            : msg
+        )
+      );
+
+      throw new Error(message);
+    } finally {
+      setIsEditingSlide(false);
+    }
+  };
+
   // Get the latest presentation from messages
   const latestPresentation = messages
     .slice()
@@ -182,26 +283,11 @@ export default function Home() {
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center max-w-2xl">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                    <svg
-                      className="w-8 h-8 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                      />
-                    </svg>
-                  </div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
                     Create Your Presentation
                   </h2>
                   <p className="text-gray-600">
-                    Tell me what you'd like to create and I'll generate a
+                    Tell me what you would like to create and I will generate a
                     professional presentation for you with detailed reasoning.
                   </p>
                 </div>
@@ -223,14 +309,17 @@ export default function Home() {
           <MainContent
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
-            presentation={null}
           />
         </div>
 
         {/* Right Side - Presentation Preview (animated slide-in) */}
         {hasMessages && (
           <div className="animate-slide-in-right w-[50vw]">
-            <PresentationPreview presentation={latestPresentation} />
+            <PresentationPreview
+              presentation={latestPresentation}
+              onEditSlide={handleEditSlide}
+              isEditing={isEditingSlide}
+            />
           </div>
         )}
       </div>
