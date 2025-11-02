@@ -77,8 +77,8 @@ export default function MessageBlock({
             </div>
           </div>
           <div className="ml-11">
-            {message.reasoning.map((step, index) => {
-              const isLast = index === message.reasoning.length - 1;
+            {message.reasoning!.map((step, index) => {
+              const isLast = index === message.reasoning!.length - 1;
               const isActive = !message.presentation && isLast;
               return (
                 <ReasoningBlock

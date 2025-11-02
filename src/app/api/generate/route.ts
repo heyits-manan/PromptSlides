@@ -157,10 +157,9 @@ Guidelines:
 
             await new Promise((resolve) => setTimeout(resolve, 300));
 
-            // Add IDs and timestamps
+            // Add IDs
             if (presentationData) {
               presentationData.id = crypto.randomUUID();
-              presentationData.created_at = new Date().toISOString();
 
               // Process slides with progress updates
               presentationData.slides = presentationData.slides.map(
@@ -182,9 +181,7 @@ Guidelines:
                   return {
                     ...slide,
                     id: crypto.randomUUID(),
-                    presentation_id: presentationData!.id,
                     order: index,
-                    created_at: new Date().toISOString(),
                   };
                 }
               );
@@ -232,10 +229,8 @@ Guidelines:
                 content: lines.slice(0, 5).map((l) => l.trim()),
                 layout: "content",
                 order: 0,
-                created_at: new Date().toISOString(),
               },
             ],
-            created_at: new Date().toISOString(),
           };
         }
 

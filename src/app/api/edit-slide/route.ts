@@ -129,18 +129,14 @@ Return JSON in this shape:
       throw new Error("Model did not return valid bullet points");
     }
 
-    const now = new Date().toISOString();
-
     const updatedPresentation: Presentation = {
       ...presentation,
-      updated_at: now,
       slides: presentation.slides.map((slide, index) =>
         index === slideIndex
           ? {
               ...slide,
               title: updatedTitle,
               content: updatedContent,
-              updated_at: now,
             }
           : slide
       ),

@@ -27,7 +27,7 @@ export default function PresentationPreview({
     setEditingSlideIndex(null);
     setEditPrompt("");
     setEditError(null);
-  }, [presentation?.id, presentation?.updated_at]);
+  }, [presentation?.id]);
 
   const handleDownload = async () => {
     if (!presentation) return;

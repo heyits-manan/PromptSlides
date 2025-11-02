@@ -6,7 +6,7 @@ import MainContent from "@/components/MainContent";
 import MessageBlock from "@/components/MessageBlock";
 import PresentationPreview from "@/components/PresentationPreview";
 import ConversationHistory from "@/components/ConversationHistory";
-import type { ChatMessage, Conversation } from "@/types";
+import type { ChatMessage, Conversation, ReasoningStep } from "@/types";
 
 const HISTORY_STORAGE_KEY = "ai-slides.conversations";
 const UNTITLED_CONVERSATION = "Untitled conversation";
@@ -274,17 +274,19 @@ export default function Home() {
               });
             } else if (parsed.type === "progress") {
               updateConversationById(conversationId, (conversation) => {
+                const progressStep: ReasoningStep = {
+                  type: "generating",
+                  title: "",
+                  content: parsed.message,
+                };
+
                 const nextMessages = conversation.messages.map((message) =>
                   message.id === assistantMessageId
                     ? {
                         ...message,
                         reasoning: [
                           ...(message.reasoning || []),
-                          {
-                            type: "generating",
-                            title: "",
-                            content: parsed.message,
-                          },
+                          progressStep,
                         ],
                       }
                     : message
@@ -379,17 +381,17 @@ export default function Home() {
     });
 
     const assistantMessageId = crypto.randomUUID();
+    const editStep: ReasoningStep = {
+      type: "generating",
+      title: "",
+      content: `Updating slide ${slideIndex + 1} based on your prompt...`,
+    };
+
     const assistantMessage: ChatMessage = {
       id: assistantMessageId,
       role: "assistant",
       content: "Applying your slide edits...",
-      reasoning: [
-        {
-          type: "generating",
-          title: "",
-          content: `Updating slide ${slideIndex + 1} based on your prompt...`,
-        },
-      ],
+      reasoning: [editStep],
       created_at: new Date().toISOString(),
     };
 
@@ -427,18 +429,18 @@ export default function Home() {
       const updatedPresentation = data.presentation;
 
       updateConversationById(conversationId, (conversation) => {
+        const successStep: ReasoningStep = {
+          type: "generating",
+          title: "",
+          content: "Applied your slide edits.",
+        };
+
         const nextMessages = conversation.messages.map((message) =>
           message.id === assistantMessageId
             ? {
                 ...message,
                 content: `Updated slide ${slideIndex + 1}`,
-                reasoning: [
-                  {
-                    type: "generating",
-                    title: "",
-                    content: "Applied your slide edits.",
-                  },
-                ],
+                reasoning: [successStep],
                 presentation: updatedPresentation,
               }
             : message

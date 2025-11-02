@@ -66,11 +66,6 @@ export default function ReasoningBlock({ step, isActive = false, isLast = false 
           <span className={`text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 ${style.accent}`}>
             {step.title}
           </span>
-          {step.timestamp && (
-            <span className="text-[11px] font-medium text-slate-400">
-              {new Date(step.timestamp).toLocaleTimeString()}
-            </span>
-          )}
         </div>
 
         <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
