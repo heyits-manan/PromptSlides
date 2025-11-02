@@ -357,36 +357,6 @@ Enable detailed logging by checking browser DevTools console:
 - Console tab: Application logs and errors
 - Application tab > Local Storage: View saved conversations
 
-## Browser Support
-
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-## Performance Considerations
-
-- **Initial Load**: ~200-500ms
-- **Slide Generation**: 5-15 seconds (depends on complexity)
-- **Slide Editing**: 3-8 seconds
-- **PPTX Download**: Instant (client-side generation)
-
-## Security Notes
-
-1. **API Key Security**
-   - Never commit `.env` to version control
-   - API key used server-side only (not exposed to client)
-   - Rotate keys if compromised
-
-2. **Data Privacy**
-   - No user data sent to external servers except Gemini API
-   - Conversation data stored locally only
-   - No analytics or tracking implemented
-
-3. **Content Safety**
-   - Gemini API has built-in content filtering
-   - User-generated content not moderated
-   - Presentation content is user's responsibility
 
 ## Future Enhancements
 
@@ -401,26 +371,9 @@ Enable detailed logging by checking browser DevTools console:
 - [ ] Offline mode with service workers
 - [ ] Custom branding and styling options
 
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit changes: `git commit -am 'Add your feature'`
-4. Push to branch: `git push origin feature/your-feature`
-5. Submit a pull request
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Check existing issues for solutions
-- Review troubleshooting section above
 
 ## Acknowledgments
 
@@ -430,5 +383,3 @@ For issues, questions, or suggestions:
 - pptxgenjs for PowerPoint generation
 
 ---
-
-**Built with ❤️ using Next.js and Google Gemini AI**
