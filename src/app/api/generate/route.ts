@@ -33,9 +33,8 @@ export async function POST(req: NextRequest) {
           )
         );
 
-        // Use Gemini 2.0 Flash Thinking model
         const model = genAI.getGenerativeModel({
-          model: "gemini-2.0-flash-thinking-exp-01-21",
+          model: "gemini-2.5-pro-preview-05-06",
         });
 
         const systemPrompt = `You are an expert presentation creator. Your task is to create professional, informative presentations based on user topics.
